@@ -1,13 +1,19 @@
-clc; clear; close all
+% clc; clear;
+close all
 
-Va              = -.3:0.01:.3; 
-MeasurementNo   = '0';
-User            = 'David';
-Wafer           = '-';
-Date            = '2018_01_23';
-Piece           = '-';
-Device          = '-';
-Material_Set    = '-';
+% Va              = -.3:0.01:.3; 
+% MeasurementNo   = '0';
+% User            = 'David';
+% Wafer           = 'CMD';
+% Date            = '2018_01_23';
+% Piece           = '-';
+% Device          = '-';
+% Material_Set    = '-';
+
+folder = strcat('D:\',User,'\',Wafer,'\',Piece,'\',Device,'\',Date,...
+    '_MEASURE#',MeasurementNo);
+Dist        = strcat('D:\',User,'\',Wafer);
+mkdir(folder);
 
 filename = 'D:\David\test_LV.csv';
 M = csvread(filename);
@@ -38,7 +44,7 @@ end
 %--------------------------------------------------------------------------
 %                           Plot Figures
 %--------------------------------------------------------------------------
-figure(1)
+figure(1);
 h1 = plot(Vbias,Idark,'o','LineWidth',1.3);
 xlabel('V_b_i_a_s (Volts)','fontsize',14);
 ylabel('I_d_c (A)','fontsize',14); 
@@ -47,21 +53,21 @@ title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
 saveas(h1,strcat(folder,'\',Wafer,'_',Device,'_IV.fig'))
 
 
-figure(2)
+figure(2);
 h2 = plot(Vd,1./Id,'o','LineWidth',1.2);
 xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('R_d \Omega','fontsize',14)
 grid on; set(gcf,'color','white');set(gca,'FontSize',14);
 title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
 saveas(h2,strcat(folder,'\',Wafer,'_',Device,'_Rd.fig'))
 
-figure(3)
+figure(3);
 h3 = plot(Vdd,Idd./(2.*IdR),'o','LineWidth',1.2);
 xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('Responsivity (A/W)','fontsize',14)
 grid on; set(gcf,'color','white');set(gca,'FontSize',14);
 title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
 saveas(h3,strcat(folder,'\',Wafer,'_',Device,'_Resp.fig'))
 
-figure(1)
+figure(1);
 hold on
 h1 = plot(Vbias,Idcfit,'LineWidth',2);
 xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('I_d_c (A)','fontsize',14)
@@ -70,14 +76,14 @@ title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
 legend('Measured','Fitted - 7^t^h Order Polynomial','location','best')
 saveas(h1,strcat(folder,'\',Wafer,'_',Device,'_IVfit.fig'))
 
-figure(5)
+figure(5);
 h2 = plot(Vdfit,1./Idfit,'LineWidth',2);
 xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('R_d \Omega','fontsize',14)
 grid on; set(gcf,'color','white');set(gca,'FontSize',14);
 title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
 saveas(h2,strcat(folder,'\',Wafer,'_',Device,'_Rdfit.fig'))
 
-figure(6)
+figure(6);
 h3 = plot(Vddfit(2:end-2),Iddfit(2:end-2)./(2.*IdRfit(2:end-2)),'LineWidth',2);
 xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('Responsivity (A/W)','fontsize',14)
 grid on; set(gcf,'color','white');set(gca,'FontSize',14);
