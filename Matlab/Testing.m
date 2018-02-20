@@ -1,16 +1,16 @@
-% clc; clear;
+%clc; clear;
 close all
 
 % Va              = -.3:0.01:.3;
 % MeasurementNo   = '0';
-User            = 'David';
-Wafer           = 'Lab_315';
-Date            = '2018_04_02';
-Piece           = '-';
+% User            = 'David';
+% Wafer           = '315';
+% Date            = '2018_04_02';
+% Piece           = '22';
 % Device          = '-';
-Material_Set    = '-';
+% Material_Set    = '-';
 
-parent_dir = 'D:\David\Lab_315\-\';
+parent_dir = strcat('D:\', User, '\', Wafer, '\', Piece, '\'); %'D:\David\315\32\';
 files = dir(parent_dir);
 dirFlags = [files.isdir];
 devices = files(dirFlags);
@@ -23,8 +23,8 @@ for x_dir = 3 : length(devices)
         folder = strcat(parent_dir, Device, '\', meas);
         
         %folder = strcat('D:\',User,'\',Wafer,'\',Piece,'\',Device,'\',Date,...
-            %'_MEASURE#',MeasurementNo);
-        Dist        = strcat('D:\David\Lab_315\');
+        %'_MEASURE#',MeasurementNo);
+        Dist        = strcat('D:\', User, '\', Wafer, '\'); %strcat('D:\David\315\');
         mkdir(folder);
         
         filename = strcat(folder, '\IV.csv');%'D:\David\test_LV.csv';
@@ -33,7 +33,7 @@ for x_dir = 3 : length(devices)
         
         Vbias_Orig = M(:,2);
         Vbias = Vbias_Orig';
-        Idark = M(:,1);
+        Idark = M(:,3);
         
         pidc        = polyfit(Vbias',Idark,7);
         Idcfit      = polyval(pidc,Vbias'); close all; plot(Vbias',Idcfit)
@@ -56,7 +56,7 @@ for x_dir = 3 : length(devices)
         %--------------------------------------------------------------------------
         %                           Plot Figures
         %--------------------------------------------------------------------------
-        figure(1);
+        figure(1)
         h1 = plot(Vbias,Idark,'o','LineWidth',1.3);
         xlabel('V_b_i_a_s (Volts)','fontsize',14);
         ylabel('I_d_c (A)','fontsize',14);
@@ -65,21 +65,21 @@ for x_dir = 3 : length(devices)
         saveas(h1,strcat(folder,'\',Wafer,'_',Device,'_IV.fig'))
         
         
-        figure(2);
+        figure(2)
         h2 = plot(Vd,1./Id,'o','LineWidth',1.2);
         xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('R_d \Omega','fontsize',14)
         grid on; set(gcf,'color','white');set(gca,'FontSize',14);
         title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
         saveas(h2,strcat(folder,'\',Wafer,'_',Device,'_Rd.fig'))
         
-        figure(3);
+        figure(3)
         h3 = plot(Vdd,Idd./(2.*IdR),'o','LineWidth',1.2);
         xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('Responsivity (A/W)','fontsize',14)
         grid on; set(gcf,'color','white');set(gca,'FontSize',14);
         title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
         saveas(h3,strcat(folder,'\',Wafer,'_',Device,'_Resp.fig'))
         
-        figure(1);
+        figure(1)
         hold on
         h1 = plot(Vbias,Idcfit,'LineWidth',2);
         xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('I_d_c (A)','fontsize',14)
@@ -88,14 +88,14 @@ for x_dir = 3 : length(devices)
         legend('Measured','Fitted - 7^t^h Order Polynomial','location','best')
         saveas(h1,strcat(folder,'\',Wafer,'_',Device,'_IVfit.fig'))
         
-        figure(5);
+        figure(5)
         h2 = plot(Vdfit,1./Idfit,'LineWidth',2);
         xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('R_d \Omega','fontsize',14)
         grid on; set(gcf,'color','white');set(gca,'FontSize',14);
         title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
         saveas(h2,strcat(folder,'\',Wafer,'_',Device,'_Rdfit.fig'))
         
-        figure(6);
+        figure(6)
         h3 = plot(Vddfit(2:end-2),Iddfit(2:end-2)./(2.*IdRfit(2:end-2)),'LineWidth',2);
         xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('Responsivity (A/W)','fontsize',14)
         grid on; set(gcf,'color','white');set(gca,'FontSize',14);
