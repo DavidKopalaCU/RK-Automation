@@ -4,12 +4,12 @@ close all
 % Va              = -.3:0.01:.3;
 % MeasurementNo   = '0';
 % User            = 'David';
-% Wafer           = '315';
-% Date            = '2018_20_02';
-% Piece           = '31';
+% Wafer           = 'MTest4';
+% Date            = '2018_03_17';
+% Piece           = '-';
 % Device          = '-';
 % Material_Set    = '-';
-% InputFile       = 'D:\David\RK-Automation\LayoutFiles\Regular.csv';
+% InputFile       = 'D:\David\RK-Automation\LayoutFiles\Regular_FirstRow.csv';
 
 pieces = {};
 if strcmp(Piece, '') == 1
@@ -26,7 +26,7 @@ end
 
 for g = 1:length(pieces)
     Piece = pieces{g};
-
+    
     parent_dir = strcat('D:\', User, '\', Wafer, '\', Piece, '\'); %'D:\David\315\32\';
     files = dir(parent_dir);
     dirFlags = [files.isdir];
@@ -38,23 +38,23 @@ for g = 1:length(pieces)
         for y_dir = 3 : length(meas_dirs)
             meas = meas_dirs(y_dir).name;
             folder = strcat(parent_dir, Device, '\', meas);
-
+            
             %folder = strcat('D:\',User,'\',Wafer,'\',Piece,'\',Device,'\',Date,...
             %'_MEASURE#',MeasurementNo);
             Dist        = strcat('D:\', User, '\', Wafer, '\'); %strcat('D:\David\315\');
             mkdir(folder);
-
+            
             filename = strcat(folder, '\IV.csv');%'D:\David\test_LV.csv';
             M = csvread(filename);
             M = sortrows(M);
-
+            
             Vbias_Orig = M(:,2);
             Vbias = Vbias_Orig';
             Idark = M(:,3);
-
+            
             pidc        = polyfit(Vbias',Idark,7);
             Idcfit      = polyval(pidc,Vbias'); close all; plot(Vbias',Idcfit)
-
+            
             for j = 2:length(Vbias)-1
                 Id(j-1) = (Idark(j+1)-Idark(j-1))./(Vbias(j+1)-Vbias(j-1));
                 Vd(j-1) = (Vbias(j+1)+Vbias(j-1))./2;
@@ -69,34 +69,34 @@ for g = 1:length(pieces)
                 IdRfit(j-1) = (Idfit(j+1)+Idfit(j-1))./2;
                 Vddfit(j-1) = (Vdfit(j+1)+Vdfit(j-1))./2;
             end
-
+            
             %--------------------------------------------------------------------------
             %                           Plot Figures
             %--------------------------------------------------------------------------
-            figure('visible', 'off')
+            figure(1)
             h1 = plot(Vbias,Idark,'o','LineWidth',1.3);
             xlabel('V_b_i_a_s (Volts)','fontsize',14);
             ylabel('I_d_c (A)','fontsize',14);
             grid on; set(gcf,'color','white');set(gca,'FontSize',14);
             title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
             saveas(h1,strcat(folder,'\',Wafer,'_',Device,'_IV.fig'))
-
-
-            %figure(2)
+            
+            
+            figure(2)
             h2 = plot(Vd,1./Id,'o','LineWidth',1.2);
             xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('R_d \Omega','fontsize',14)
             grid on; set(gcf,'color','white');set(gca,'FontSize',14);
             title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
             saveas(h2,strcat(folder,'\',Wafer,'_',Device,'_Rd.fig'))
-
-            %figure(3)
+            
+            figure(3)
             h3 = plot(Vdd,Idd./(2.*IdR),'o','LineWidth',1.2);
             xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('Responsivity (A/W)','fontsize',14)
             grid on; set(gcf,'color','white');set(gca,'FontSize',14);
             title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
             saveas(h3,strcat(folder,'\',Wafer,'_',Device,'_Resp.fig'))
-
-            %figure(1)
+            
+            figure(1)
             hold on
             h1 = plot(Vbias,Idcfit,'LineWidth',2);
             xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('I_d_c (A)','fontsize',14)
@@ -104,50 +104,50 @@ for g = 1:length(pieces)
             title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
             legend('Measured','Fitted - 7^t^h Order Polynomial','location','best')
             saveas(h1,strcat(folder,'\',Wafer,'_',Device,'_IVfit.fig'))
-
-            %figure(5)
+            
+            figure(5)
             h2 = plot(Vdfit,1./Idfit,'LineWidth',2);
             xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('R_d \Omega','fontsize',14)
             grid on; set(gcf,'color','white');set(gca,'FontSize',14);
             title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
             saveas(h2,strcat(folder,'\',Wafer,'_',Device,'_Rdfit.fig'))
-
-            %figure(6)
+            
+            figure(6)
             h3 = plot(Vddfit(2:end-2),Iddfit(2:end-2)./(2.*IdRfit(2:end-2)),'LineWidth',2);
             xlabel('V_b_i_a_s (Volts)','fontsize',14); ylabel('Responsivity (A/W)','fontsize',14)
             grid on; set(gcf,'color','white');set(gca,'FontSize',14);
             title(strcat(Wafer,'\',Device,'\',Material_Set),'FontSize',12)
             saveas(h3,strcat(folder,'\',Wafer,'_',Device,'_Respfit.fig'))
-
+            
             %--------------------------------------------------------------------------
             %                           Find relavant points
             %--------------------------------------------------------------------------
             % (peak responsivity & zero bias responsivity and resistance
-
+            
             xd          = Vdfit;
             Rd          = 1./Idfit;
             xdd         = Vddfit(2:end-2);
             beta        = Iddfit(2:end-2)./(2.*IdRfit(2:end-2));
-
-
+            
+            
             z   = knnsearch(xd',0);  % The index of value of Resistance at zero voltage
             y   = knnsearch(xdd',0); % The index of value of Responsivity at zero voltage
             % The index of the value where Responsivity is maximum
             u   = find(abs(beta)==max(abs(beta)));
             % Index of the value of the voltage where responsivity is zero
             v   = knnsearch(beta',0);
-
+            
             ZeroResistance      = Rd(z);     % The value of Resistance at zero voltage
             ZeroResponsivity    = beta(y); % The value of Responsivity at zero voltage
             % The value and voltage where Responsivity is maximum
             PeakResponsivity    = beta(u); VoltagePeak = xdd(u);
             % The value of the voltage where responsivity is zero
             ZeroVoltage         = xdd(v);
-
+            
             y_intercept     = ZeroResponsivity;
             x_intercept     = ZeroVoltage;
             slope           = -(y_intercept/x_intercept);
-
+            
             orderfit        = 7;
             Vbmin           = floor(-0.25.*1000)./1000;
             Vbmax           = floor(0.25.*1000)./1000;
@@ -156,12 +156,12 @@ for g = 1:length(pieces)
             p               = polyfit(Vbias',Idark,orderfit);
             p(end)          = 0;
             yfit            = polyval(p,VbiasR);
-
+            
             f1 = find(VbiasR==-0.03);    f2 = find(VbiasR==0.03);
             c1 = -yfit(f1);             c2 = yfit(f2);
             f3 = find(VbiasR==-0.1);    f4 = find(VbiasR==0.1);
             c3 = -yfit(f3);             c4 = yfit(f4);
-
+            
             if c1>=c2
                 asym_30mV = c1/c2;
                 if c3>=c4
@@ -186,17 +186,17 @@ for g = 1:length(pieces)
                 blanks(1) num2str(VoltagePeak*1000) '   mV']);
             disp(['Asymmetry at  30 mV    ='  blanks(4) num2str(asym_30mV)]);
             disp(['Asymmetry at 100 mV    ='  blanks(4) num2str(asym_100mV)]);
-
+            
             figure(5)
             legend(['R_0 = ' num2str(round(ZeroResistance)) ' \Omega'],'location','best')
-
+            
             figure(6)
             legend(['\beta_0 = ' num2str(ZeroResponsivity,2) ' A/W'],'location','best')
             %
             % %--------------------------------------------------------------------------
             % %                           Create Excel File
             %--------------------------------------------------------------------------
-
+            
             cd(Dist)
             excel = strcat (Wafer,'_',Piece,'_',Material_Set,'.xlsx');
             % Write everything to an excel sheet
@@ -204,7 +204,7 @@ for g = 1:length(pieces)
             sheet1 = 'Summary'; Title = [{'Diode'},{'Zero Bias Responsivity (A/W)'},...
                 {'Zero Bias Resistance (Ohm)'}];
             xlswrite(excel,Title,sheet1,'A1:I1');
-
+            
             % Read in the old data, text and all
             [~,~,Data]=xlsread(excel,sheet1);
             % Get the row number of the end
@@ -215,13 +215,13 @@ for g = 1:length(pieces)
             xlRange3 = sprintf('%s%d','C',nextRow); xlswrite(excel,ZeroResistance,sheet1,xlRange3);
         end
     end
-
+    
     [in_num, in_names, in_raw] = xlsread(InputFile);
-
+    
     final_sheet = strcat('D:\', User, '\', Wafer, '\', Wafer, '_', Piece, '_', Material_Set, '.xlsx');
     [num, text, raw] = xlsread(final_sheet, 'Summary');
     names = text(:, 1);
-
+    
     keys = {};
     resp_values = [0,0];
     ohm_values = [0,0];
@@ -241,7 +241,7 @@ for g = 1:length(pieces)
             key_index = length(keys) + 1;
             keys{key_index} = identifier;
         end
-
+        
         value_index = -1;
         for k = 1:length(ohm_values)
             if key_index > size(ohm_values, 1)
@@ -264,13 +264,13 @@ for g = 1:length(pieces)
                 resp_values(key_index, value_index) = num(i, 1);
                 ohm_values(key_index, value_index) = num(i, 2);
             else
-               print('Restistance < 0') 
+                print('Restistance < 0')
             end
         else
             print('Resp out of range')
         end
     end
-
+    
     %figure('visible', 'off')
     figure(1)
     for i = 1:size(ohm_values, 1)
@@ -282,7 +282,7 @@ for g = 1:length(pieces)
     xlabel('Resistance (Ohms)')
     ylabel('%')
     saveas(test, strcat('D:\', User, '\', Wafer, '\', Piece, '\', 'Resistance_CDF.fig'))
-
+    
     figure(2)
     %figure('visible', 'off')
     for i = 1:size(resp_values, 1)
@@ -294,7 +294,7 @@ for g = 1:length(pieces)
     xlabel('Responsivity (A/W)')
     ylabel('%')
     saveas(test, strcat('D:\', User, '\', Wafer, '\',Piece, '\', 'Responsivity_CDF.fig'))
-
+    
     colors = ['r', 'g', 'b', 'y', 'm', 'c'];
     figure(3)
     for i = 1:size(ohm_values, 1)
