@@ -4,8 +4,8 @@ close all
 % Va              = -.3:0.01:.3;
 % MeasurementNo   = '0';
 % User            = 'David';
-% Wafer           = 'MTest4';
-% Date            = '2018_03_17';
+% Wafer           = '315LT1';
+% Date            = '2018_03_20';
 % Piece           = '-';
 % Device          = '-';
 % Material_Set    = '-';
@@ -31,7 +31,9 @@ for g = 1:length(pieces)
     files = dir(parent_dir);
     dirFlags = [files.isdir];
     devices = files(dirFlags);
-    for x_dir = 3 : length(devices)
+    [~, idx] = sort([devices.datenum]);
+    for x_dir_i = 1 : length(idx) - 2
+        x_dir = idx(x_dir_i);
         Device = devices(x_dir).name;
         meas_files = dir(strcat(parent_dir, Device, '\'));
         meas_dirs = meas_files([meas_files.isdir]);
@@ -216,6 +218,8 @@ for g = 1:length(pieces)
         end
     end
     
+    close all
+    
     [in_num, in_names, in_raw] = xlsread(InputFile);
     
     final_sheet = strcat('D:\', User, '\', Wafer, '\', Wafer, '_', Piece, '_', Material_Set, '.xlsx');
@@ -225,23 +229,51 @@ for g = 1:length(pieces)
     keys = {};
     resp_values = [0,0];
     ohm_values = [0,0];
-    for i = 1:length(num)
+    for i = 1:length(in_raw)
         % curr_name = names{i+1};
         % identifier = curr_name(1:end-1);
         identifier = in_raw(i, 4);
         identifier = num2str(identifier{1});
         key_index = -1;
-        for j = 1:length(keys)
-            if strcmp(identifier, keys{j}) == 1
+        temp = size(keys);
+        for j = 1:temp(2)
+            if strcmp(identifier, keys{1, j}) == 1
                 key_index = j;
                 break;
             end
         end
         if key_index == -1
-            key_index = length(keys) + 1;
-            keys{key_index} = identifier;
+            key_index = temp(2) + 1;
+            keys{1, key_index} = identifier;
         end
-        
+        temp = size(keys);
+        name_index = -1;
+        for j = 1:temp(1)
+            if isempty(keys{j, key_index}) == 1
+                name_index = j;
+                break;
+            end
+        end
+        if name_index == -1
+            name_index = temp(1)+1;
+        end
+        keys{name_index, key_index} = in_raw{i, 3};
+    end
+    
+    for i = 2:size(raw, 1)
+        shape = size(keys);
+        key_index = -1;
+        for j = 2:shape(1)
+            if key_index ~= -1
+                break
+            end
+            for k = 1:shape(2)
+                if strcmp(raw{i, 1}, keys{j, k}) == 1
+                    key_index = k;
+                    break
+                end
+            end
+        end
         value_index = -1;
         for k = 1:length(ohm_values)
             if key_index > size(ohm_values, 1)
@@ -259,15 +291,15 @@ for g = 1:length(pieces)
             value_index = 1;
         end
         % Check for bounds
-        if num(i, 1) > -3 && num(i, 1) < 3
-            if num(i, 2) > 0
-                resp_values(key_index, value_index) = num(i, 1);
-                ohm_values(key_index, value_index) = num(i, 2);
+        if raw{i, 2} > -3 && raw{i, 2} < 3
+            if raw{i, 3} > 0
+                resp_values(key_index, value_index) = num(i-1, 1);
+                ohm_values(key_index, value_index) = num(i-1, 2);
             else
-                print('Restistance < 0')
+                disp('Restistance < 0')
             end
         else
-            print('Resp out of range')
+            disp('Resp out of range')
         end
     end
     
@@ -277,7 +309,7 @@ for g = 1:length(pieces)
         test = cdfplot(ohm_values(i, :)');
         hold on
     end
-    legend(keys, 'Location', 'southeast')
+    legend(keys(1, 1:end), 'Location', 'southeast')
     title('Resistance CDF')
     xlabel('Resistance (Ohms)')
     ylabel('%')
@@ -289,7 +321,7 @@ for g = 1:length(pieces)
         test = cdfplot(resp_values(i, :)');
         hold on
     end
-    legend(keys, 'Location', 'southeast')
+    legend(keys(1, 1:end), 'Location', 'southeast')
     title('Responsivity CDF')
     xlabel('Responsivity (A/W)')
     ylabel('%')
@@ -302,7 +334,9 @@ for g = 1:length(pieces)
         grid on
         hold on
     end
-    legend(keys)
+    if size(ohm_values, 1) == size(keys, 2)
+        legend(keys(1: 1:end))
+    end
     title('Responsivity vs Resistance Scatterplot')
     xlabel('Resistance (Ohms)')
     ylabel('Responsivity (A/W)')
